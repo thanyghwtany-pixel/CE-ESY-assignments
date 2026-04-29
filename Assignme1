@@ -1,1 +1,79 @@
 
+#include <stdio.h>
+
+#include <string.h>
+
+#define MAX_SIZE 12
+
+typedef struct {
+    char data[MAX_SIZE];
+    int write_ptr; 
+    int read_ptr; 
+    int is_full;  
+} SmartBuffer;
+
+void setupBuffer(SmartBuffer *sb) {
+    sb->write_ptr = 0;
+    sb->read_ptr = 0;
+    sb->is_full = 0;
+}
+
+int bufferFull(SmartBuffer *sb) {
+    return sb->is_full;
+}
+
+int bufferEmpty(SmartBuffer *sb) {
+    return (!sb->is_full && (sb->write_ptr == sb->read_ptr));
+}
+
+void addChar(SmartBuffer *sb, char ch) {
+    if (bufferFull(sb)) {
+        printf("\n[Warning] Overflow: Cannot add '%c'\n", ch);
+        return;
+    }
+    
+    sb->data[sb->write_ptr] = ch;
+    sb->write_ptr = (sb->write_ptr + 1) % MAX_SIZE;
+
+    if (sb->write_ptr == sb->read_ptr) {
+        sb->is_full = 1;
+    }
+}
+
+char getChar(SmartBuffer *sb) {
+    if (bufferEmpty(sb)) {
+        return '\0';
+    }
+    
+    char ch = sb->data[sb->read_ptr];
+    sb->is_full = 0;
+    sb->read_ptr = (sb->read_ptr + 1) % MAX_SIZE;
+    
+    return ch;
+}
+
+int main() {
+    SmartBuffer my_sb;
+    setupBuffer(&my_sb);
+
+    char name_buffer[80];
+    printf("Enter your name: ");
+    
+    scanf("%s", name_buffer);
+
+    strcat(name_buffer, "CE-ESY");
+    printf("Processing String: %s\n", name_buffer);
+
+    for (int i = 0; i < strlen(name_buffer); i++) {
+        addChar(&my_sb, name_buffer[i]);
+    }
+
+    printf("Reading from Buffer: ");
+    while (!bufferEmpty(&my_sb)) {
+        printf("%c", getChar(&my_sb));
+    }
+    
+    printf("\n\nExecution finished. Buffer is empty.\n");
+
+    return 0;
+}
